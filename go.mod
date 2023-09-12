@@ -1,4 +1,4 @@
-module github.com/hnamzian/two-party-mpc-go
+module github.com/hnamzian/yehuda-mpc
 
 go 1.19
 
