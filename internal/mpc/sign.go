@@ -1,4 +1,4 @@
-package party
+package mpc
 
 import (
 	"crypto/ecdsa"
@@ -7,7 +7,7 @@ import (
 	"math/big"
 
 	"github.com/coinbase/kryptology/pkg/paillier"
-	"github.com/hnamzian/yehuda-mpc/random"
+	"github.com/hnamzian/yehuda-mpc/internal/random"
 )
 
 type R struct {
