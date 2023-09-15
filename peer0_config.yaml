@@ -1,0 +1,9 @@
+id: "peer0"
+logLevel: debug
+grpc:
+  host: "0.0.0.0"
+  port: "8080"
+peers:
+  - addr: "0.0.0.0:9090"
+wallet:
+  path: "./keys/p1"
