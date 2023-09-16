@@ -16,7 +16,19 @@ func NewApplication(app application.App, logger zerolog.Logger) Application {
 	return Application{app: app, logger: logger}
 }
 
-func (a Application) HealthCheck(ctx context.Context, health *application.HealthCheckRequest) (health_rsp*application.HealthCheckResponse, err error) {
+func (a Application) GetWallet(ctx context.Context, get *application.GetWalletRequest) (get_resp *application.GetWalletResponse, err error) {
+	a.logger.Info().Msgf("--> MPCService.GetWallet: %v", get)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.GetWallet")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.GetWallet")
+		}
+	}()
+	return a.app.GetWallet(ctx, get)
+}
+
+func (a Application) HealthCheck(ctx context.Context, health *application.HealthCheckRequest) (health_rsp *application.HealthCheckResponse, err error) {
 	a.logger.Info().Msgf("--> MPCService.HealthCheck: %v", health)
 	defer func() {
 		if err != nil {

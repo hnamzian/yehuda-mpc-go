@@ -11,6 +11,7 @@ import (
 
 type App interface {
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
+	GetWallet(context.Context, *GetWalletRequest) (*GetWalletResponse, error)
 	GenerateKeyPair(context.Context, *GenerateKeyPairRequest) (*GenerateKeyPairResponse, error)
 	GeneratePartialKey(context.Context, *GeneratePartialKeyRequest) (*GeneratePartialKeyResponse, error)
 	ExchangePartialKey(ctx context.Context, exchange *ExchangePartialKeyRequest) (*ExchangePartialKeyResponse, error)
@@ -28,6 +29,15 @@ type (
 	HealthCheckRequest  struct{}
 	HealthCheckResponse struct {
 		Status string
+	}
+
+	GetWalletRequest struct {
+		KeyID string
+	}
+	GetWalletResponse struct {
+		KeyID            string
+		PartialPublicKey []byte
+		PublicKey        []byte
 	}
 
 	GenerateKeyPairRequest  struct{}
@@ -93,6 +103,16 @@ func (a Application) HealthCheck(ctx context.Context, health *HealthCheckRequest
 	}, nil
 }
 
+func (a Application) GetWallet(ctx context.Context, get *GetWalletRequest) (*GetWalletResponse, error) {
+	partialPubKey := a.mpc.PartialPublicKeyBytes(get.KeyID)
+	publicKey := a.mpc.PublicKeyBytes(get.KeyID)
+	return &GetWalletResponse{
+		KeyID:            get.KeyID,
+		PartialPublicKey: partialPubKey,
+		PublicKey:        publicKey,
+	}, nil
+}
+
 func (a Application) GenerateKeyPair(ctx context.Context, generate *GenerateKeyPairRequest) (*GenerateKeyPairResponse, error) {
 	keyID := uuid.New().String()
 	err := a.mpc.GenerateKeyPair(keyID)
@@ -119,8 +139,8 @@ func (a Application) ExchangePartialKey(ctx context.Context, exchange *ExchangeP
 		return nil, err
 	}
 	a.mpc.ExchangePartialKey(&mpc.ExchangePartialKeyRequest{
-		KeyID: 	exchange.KeyID,
-		Commitment: commitment,	
+		KeyID:      exchange.KeyID,
+		Commitment: commitment,
 	})
 	return &ExchangePartialKeyResponse{
 		KeyID:     exchange.KeyID,

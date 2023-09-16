@@ -57,7 +57,7 @@ func (mpc *MPC) GenerateKeyPair(id string) error {
 		return err
 	}
 
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Exchanging Partial Key Commitment")
+	mpc.logger.Debug().Msg("peer.ExchangePartialKey")
 	hash := sha256.New()
 	resp, err := mpc.peer.ExchangePartialKey(&ExchangePartialKeyRequest{
 		KeyID:      id,
@@ -66,12 +66,13 @@ func (mpc *MPC) GenerateKeyPair(id string) error {
 	if err != nil {
 		return err
 	}
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Partial Key Commitment Exchanged")
+	mpc.logger.Debug().Msg("peer.ExchangePartialKey OK")
 
 	peerPubKey := PublicKeyFromBytes(resp.PublicKey)
 	mpc.wallets.GetWallet(id).ComputeWalletPublicKey(peerPubKey)
-	mpc.logger.Debug().Str("MPC", mpc.name).Str("PublicKey", hex.EncodeToString(mpc.wallets.GetWallet(id).PublicKeyBytes())).Msg("Public Key Updated")
+	mpc.logger.Debug().Str("PublicKey", hex.EncodeToString(mpc.wallets.GetWallet(id).PublicKeyBytes())).Msg("Public Key Updated")
 
+	mpc.logger.Debug().Msg("peer.ProvePartialKeyCommitment")
 	proof_resp, err := mpc.peer.ProvePartialKeyCommitment(&ProvePartialKeyCommitmentRequest{
 		KeyID: id,
 		Proof: PublicKeyToBytes(mpc.wallets.GetWallet(id).PartialPublicKey()),
@@ -82,9 +83,9 @@ func (mpc *MPC) GenerateKeyPair(id string) error {
 	if !proof_resp.Verified {
 		return fmt.Errorf("Peer partial public key not verified")
 	}
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Partial Key Commitment Verified")
+	mpc.logger.Debug().Msg("peer.ProvePartialKeyCommitment OK")
 
-	fmt.Printf("hash1: %s", hex.EncodeToString(hash.Sum(mpc.wallets.GetWallet(id).PublicKeyBytes())))
+	mpc.logger.Debug().Msg("peer.ExchangeKey")
 	_, err = mpc.peer.ExchangeKey(&ExchangeKeyRequest{
 		KeyID:      id,
 		Commitment: hash.Sum(mpc.wallets.GetWallet(id).PublicKeyBytes()),
@@ -92,8 +93,9 @@ func (mpc *MPC) GenerateKeyPair(id string) error {
 	if err != nil {
 		return err
 	}
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Public Key Exchanged")
+	mpc.logger.Debug().Msg("peer.ExchangeKey OK")
 
+	mpc.logger.Debug().Msg("peer.ProveKeyCommitment")
 	key_resp, err := mpc.peer.ProveKeyCommitment(&ProveKeyCommitmentRequest{
 		KeyID: id,
 		Proof: PublicKeyToBytes(mpc.wallets.GetWallet(id).PublicKey()),
@@ -104,26 +106,37 @@ func (mpc *MPC) GenerateKeyPair(id string) error {
 	if !key_resp.Verified {
 		return fmt.Errorf("Peer public key not verified")
 	}
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Public Key Commitment Verified")
+	mpc.logger.Debug().Msg("peer.ProveKeyCommitment OK")
 
 	return nil
 }
 
-func (mpc *MPC) GeneratePartialKeyPair(id string) error {
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Generating partial key pair")
+func (mpc *MPC) GeneratePartialKeyPair(id string) (err error) {
+	mpc.logger.Debug().Msg("mpc.GeneratePartialKeyPair")
+	defer func() {
+		if err != nil {
+			mpc.logger.Error().Err(err).Msg("mpc.GeneratePartialKeyPair FAILED")
+		}
+		mpc.logger.Debug().Msg("mpc.GeneratePartialKeyPair OK")
+	}()
 
-	err := mpc.wallets.NewWallet(id)
+	err = mpc.wallets.NewWallet(id)
 	if err != nil {
-		return err
+		return
 	}
 
-	mpc.logger.Debug().Str("MPC", mpc.name).Str("PartialPublicKey", hex.EncodeToString(mpc.wallets.GetWallet(id).PartialPublicKeyBytes())).Msg("Partial key pair generated")
-	return nil
+	// mpc.logger.Debug().Str("PartialPublicKey", hex.EncodeToString(mpc.wallets.GetWallet(id).PartialPublicKeyBytes())).Msg("Partial key pair generated")
+	return
 }
 
-func (mpc *MPC) ExchangePartialKey(exchange *ExchangePartialKeyRequest) (*ExchangePartialKeyResponse, error) {
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Exchanging Partial Key Commitment")
-	defer mpc.logger.Debug().Str("MPC", mpc.name).Msg("Partial Key Commitment Exchanged")
+func (mpc *MPC) ExchangePartialKey(exchange *ExchangePartialKeyRequest) (resp *ExchangePartialKeyResponse, err error) {
+	mpc.logger.Debug().Msg("mpc.ExchangePartialKey")
+	defer func() {
+		if err != nil {
+			mpc.logger.Error().Err(err).Msg("mpc.ExchangePartialKey FAILED")
+		}
+		mpc.logger.Debug().Msg("mpc.ExchangePartialKey OK")
+	}()
 
 	mpc.peerPartialKeyCommitment[exchange.KeyID] = exchange.Commitment
 	return &ExchangePartialKeyResponse{
@@ -132,14 +145,19 @@ func (mpc *MPC) ExchangePartialKey(exchange *ExchangePartialKeyRequest) (*Exchan
 	}, nil
 }
 
-func (mpc *MPC) ProvePartialKeyCommitment(proof *ProvePartialKeyCommitmentRequest) (*ProvePartialKeyCommitmentResponse, error) {
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Verifying Partial Key Commitment")
-	defer mpc.logger.Debug().Str("MPC", mpc.name).Msg("Partial Key Commitment Verified")
+func (mpc *MPC) ProvePartialKeyCommitment(proof *ProvePartialKeyCommitmentRequest) (resp *ProvePartialKeyCommitmentResponse, err error) {
+	mpc.logger.Debug().Msg("mpc.ProvePartialKeyCommitment")
+	defer func() {
+		if err != nil {
+			mpc.logger.Error().Err(err).Msg("mpc.ProvePartialKeyCommitment FAILED")
+		}
+		mpc.logger.Debug().Msg("mpc.ProvePartialKeyCommitment OK")
+	}()
 
 	hash := sha256.New()
 	if bytes.Equal(hash.Sum(proof.Proof), mpc.peerPartialKeyCommitment[proof.KeyID]) {
 		err := mpc.wallets.GetWallet(proof.KeyID).ComputeWalletPublicKey(PublicKeyFromBytes(proof.Proof))
-		mpc.logger.Debug().Str("MPC", mpc.name).Str("PublicKey", hex.EncodeToString(mpc.wallets.GetWallet(proof.KeyID).PublicKeyBytes())).Msg("Public Key Updated")
+		mpc.logger.Debug().Str("PublicKey", hex.EncodeToString(mpc.wallets.GetWallet(proof.KeyID).PublicKeyBytes())).Msg("Public Key Updated")
 		if err != nil {
 			return nil, err
 		}
@@ -154,9 +172,14 @@ func (mpc *MPC) ProvePartialKeyCommitment(proof *ProvePartialKeyCommitmentReques
 	}, nil
 }
 
-func (mpc *MPC) ExchangeKey(exchange *ExchangeKeyRequest) (*ExchangeKeyResponse, error) {
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Exchanging Public Key Commitment")
-	defer mpc.logger.Debug().Str("MPC", mpc.name).Msg("Public Key Commitment Exchanged")
+func (mpc *MPC) ExchangeKey(exchange *ExchangeKeyRequest) (resp *ExchangeKeyResponse, err error) {
+	mpc.logger.Debug().Msg("mpc.ExchangeKey")
+	defer func() {
+		if err != nil {
+			mpc.logger.Error().Err(err).Msg("mpc.ExchangeKey FAILED")
+		}
+		mpc.logger.Debug().Msg("mpc.ExchangeKey OK")
+	}()
 
 	mpc.peerKeyCommitment[exchange.KeyID] = exchange.Commitment
 	return &ExchangeKeyResponse{
@@ -165,14 +188,16 @@ func (mpc *MPC) ExchangeKey(exchange *ExchangeKeyRequest) (*ExchangeKeyResponse,
 	}, nil
 }
 
-func (mpc *MPC) ProveKeyCommitment(proof *ProveKeyCommitmentRequest) (*ProveKeyCommitmentResponse, error) {
-	mpc.logger.Debug().Str("MPC", mpc.name).Msg("Verifying Public Key Commitment")
-	defer mpc.logger.Debug().Str("MPC", mpc.name).Msg("Public Key Commitment verified")
+func (mpc *MPC) ProveKeyCommitment(proof *ProveKeyCommitmentRequest) (resp *ProveKeyCommitmentResponse, err error) {
+	mpc.logger.Debug().Msg("mpc.ProveKeyCommitment")
+	defer func() {
+		if err != nil {
+			mpc.logger.Error().Err(err).Msg("mpc.ProveKeyCommitment FAILED")
+		}
+		mpc.logger.Debug().Msg("mpc.ProveKeyCommitment OK")
+	}()
 	
-	
-	hash := sha256.New()
-	fmt.Printf("hash2: %s", hex.EncodeToString(hash.Sum(proof.Proof)))
-	
+	hash := sha256.New()	
 	if bytes.Equal(hash.Sum(proof.Proof), mpc.peerKeyCommitment[proof.KeyID]) {
 		fmt.Printf("00000000000000000000000")
 		
@@ -181,7 +206,6 @@ func (mpc *MPC) ProveKeyCommitment(proof *ProveKeyCommitmentRequest) (*ProveKeyC
 			Verified: true,
 		}, nil
 	}
-	fmt.Printf("11111111111111111111111")
 	return &ProveKeyCommitmentResponse{
 		KeyID:    proof.KeyID,
 		Verified: false,

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	MPCService_HealthCheck_FullMethodName               = "/mpcservice.MPCService/HealthCheck"
+	MPCService_GetWallet_FullMethodName                 = "/mpcservice.MPCService/GetWallet"
 	MPCService_GenerateKeyPair_FullMethodName           = "/mpcservice.MPCService/GenerateKeyPair"
 	MPCService_GeneratePartialKey_FullMethodName        = "/mpcservice.MPCService/GeneratePartialKey"
 	MPCService_ExchangePartialKey_FullMethodName        = "/mpcservice.MPCService/ExchangePartialKey"
@@ -33,6 +34,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MPCServiceClient interface {
 	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
+	GetWallet(ctx context.Context, in *GetWalletRequest, opts ...grpc.CallOption) (*GetWalletResponse, error)
 	GenerateKeyPair(ctx context.Context, in *GenerateKeyPairRequest, opts ...grpc.CallOption) (*GenerateKeyPairResponse, error)
 	GeneratePartialKey(ctx context.Context, in *GeneratePartialKeyRequest, opts ...grpc.CallOption) (*GeneratePartialKeyResponse, error)
 	ExchangePartialKey(ctx context.Context, in *ExchangePartialKeyRequest, opts ...grpc.CallOption) (*ExchangePartialKeyResponse, error)
@@ -52,6 +54,15 @@ func NewMPCServiceClient(cc grpc.ClientConnInterface) MPCServiceClient {
 func (c *mPCServiceClient) HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
 	out := new(HealthCheckResponse)
 	err := c.cc.Invoke(ctx, MPCService_HealthCheck_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mPCServiceClient) GetWallet(ctx context.Context, in *GetWalletRequest, opts ...grpc.CallOption) (*GetWalletResponse, error) {
+	out := new(GetWalletResponse)
+	err := c.cc.Invoke(ctx, MPCService_GetWallet_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +128,7 @@ func (c *mPCServiceClient) ProveKeyCommitment(ctx context.Context, in *ProveKeyC
 // for forward compatibility
 type MPCServiceServer interface {
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
+	GetWallet(context.Context, *GetWalletRequest) (*GetWalletResponse, error)
 	GenerateKeyPair(context.Context, *GenerateKeyPairRequest) (*GenerateKeyPairResponse, error)
 	GeneratePartialKey(context.Context, *GeneratePartialKeyRequest) (*GeneratePartialKeyResponse, error)
 	ExchangePartialKey(context.Context, *ExchangePartialKeyRequest) (*ExchangePartialKeyResponse, error)
@@ -132,6 +144,9 @@ type UnimplementedMPCServiceServer struct {
 
 func (UnimplementedMPCServiceServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
+}
+func (UnimplementedMPCServiceServer) GetWallet(context.Context, *GetWalletRequest) (*GetWalletResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWallet not implemented")
 }
 func (UnimplementedMPCServiceServer) GenerateKeyPair(context.Context, *GenerateKeyPairRequest) (*GenerateKeyPairResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateKeyPair not implemented")
@@ -178,6 +193,24 @@ func _MPCService_HealthCheck_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MPCServiceServer).HealthCheck(ctx, req.(*HealthCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MPCService_GetWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).GetWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_GetWallet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).GetWallet(ctx, req.(*GetWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -300,6 +333,10 @@ var MPCService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HealthCheck",
 			Handler:    _MPCService_HealthCheck_Handler,
+		},
+		{
+			MethodName: "GetWallet",
+			Handler:    _MPCService_GetWallet_Handler,
 		},
 		{
 			MethodName: "GenerateKeyPair",

@@ -4,6 +4,7 @@ package mpcservice;
 
 service MPCService {
     rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {}
+    rpc GetWallet(GetWalletRequest) returns (GetWalletResponse) {}
     rpc GenerateKeyPair(GenerateKeyPairRequest) returns (GenerateKeyPairResponse) {}
     rpc GeneratePartialKey(GeneratePartialKeyRequest) returns (GeneratePartialKeyResponse) {}
     rpc ExchangePartialKey(ExchangePartialKeyRequest) returns (ExchangePartialKeyResponse) {}
@@ -16,6 +17,16 @@ message HealthCheckRequest {}
 
 message HealthCheckResponse {
     string status = 1;
+}
+
+message GetWalletRequest {
+    string key_id = 1;
+}
+
+message GetWalletResponse {
+    string key_id = 1;
+    string partial_pub_key = 2;
+    string public_key = 3;
 }
 
 message GenerateKeyPairRequest {}

@@ -26,6 +26,20 @@ func (s MpcServer) HealthCheck(ctx context.Context, request *mpcwalletpb.HealthC
 	}, err
 }
 
+func (s MpcServer) GetWallet(ctx context.Context, get *mpcwalletpb.GetWalletRequest) (*mpcwalletpb.GetWalletResponse, error) {
+	resp, err := s.app.GetWallet(ctx, &application.GetWalletRequest{
+		KeyID: get.KeyId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &mpcwalletpb.GetWalletResponse{
+		KeyId:         resp.KeyID,
+		PartialPubKey: hex.EncodeToString(resp.PartialPublicKey),
+		PublicKey:     hex.EncodeToString(resp.PublicKey),
+	}, nil
+}
+
 func (s MpcServer) GenerateKeyPair(ctx context.Context, request *mpcwalletpb.GenerateKeyPairRequest) (*mpcwalletpb.GenerateKeyPairResponse, error) {
 	resp, err := s.app.GenerateKeyPair(ctx, &application.GenerateKeyPairRequest{})
 	if err != nil {
