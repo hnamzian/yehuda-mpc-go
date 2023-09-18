@@ -20,7 +20,7 @@ type MPC struct {
 	peerPartialKeyCommitment map[string][]byte
 	peerKeyCommitment        map[string][]byte
 	paillierPk               *homomorphic.PaillierKey
-	sig                      *Signature
+	signator                 Signator
 	logger                   zerolog.Logger
 }
 
@@ -196,11 +196,9 @@ func (mpc *MPC) ProveKeyCommitment(proof *ProveKeyCommitmentRequest) (resp *Prov
 		}
 		mpc.logger.Debug().Msg("mpc.ProveKeyCommitment OK")
 	}()
-	
-	hash := sha256.New()	
+
+	hash := sha256.New()
 	if bytes.Equal(hash.Sum(proof.Proof), mpc.peerKeyCommitment[proof.KeyID]) {
-		fmt.Printf("00000000000000000000000")
-		
 		return &ProveKeyCommitmentResponse{
 			KeyID:    proof.KeyID,
 			Verified: true,
@@ -262,27 +260,45 @@ func (mpc *MPC) EncryptPrivKey(id string) (paillier.Ciphertext, error) {
 	return encrypted_d, err
 }
 
-func (mpc *MPC) InitSignature() {
-	mpc.sig = InitSignature()
+func (mpc *MPC) InitSignator() {
+	mpc.signator = NewSignator(mpc.peer, mpc.paillierPk, &mpc.wallets)
 }
 
-func (mpc *MPC) GetSignature() *Signature {
-	return mpc.sig
+func (mpc *MPC) Sign(digest []byte, keyID string) ([]byte, []byte, error) {
+	return mpc.signator.Sign(digest, keyID)
 }
 
-func (mpc *MPC) ComputeSigpartialS(id string, d2_encrypted paillier.Ciphertext, pk2 *paillier.PublicKey, digest []byte) (paillier.Ciphertext, error) {
-	w := mpc.wallets.GetWallet(id)
-	return mpc.sig.computeSigPartialS(w.PartialPrivateKey(), d2_encrypted, pk2, digest)
+func (mpc *MPC) GenerateSigantureR(request *GenerateSigRRequest) (*GenerateSigRResponse, error) {
+	r, err := mpc.signator.generateSigantureR(request.SigID, request.KeyID, UnmarshalR(request.R))
+	if err != nil {
+		return nil, err
+	}
+	return &GenerateSigRResponse{
+		SigID: request.SigID,
+		KeyID: request.KeyID,
+		R:     r.Bytes(),
+	}, nil
 }
 
-func (mpc *MPC) ComputeSignature(s2_encrypted paillier.Ciphertext) (*big.Int, *big.Int, error) {
-	return mpc.sig.computeSignature(mpc.paillierPk.Sk, s2_encrypted)
-}
+func (mpc *MPC) GeneratePartialSignatureS(request *GeneratePartialSignatureSRequest) (*GeneratePartialSignatureSResponse, error) {
+	pk := &paillier.PublicKey{}
+	pk.UnmarshalJSON(request.PK)
 
-// func (mpc *MPC) ComputeK(k2 *big.Int) {
-// 	p.sig.ComputeK(k2)
-// }
+	var S *big.Int 
+	S, err := mpc.signator.generateSignaturePartialS(
+		request.SigID,
+		request.KeyID,
+		request.D,
+		pk,
+		request.Digest,
+	)
+	if err != nil {
+		return nil, err
+	}
 
-func (mpc *MPC) ComputeR(R2 *R) {
-	mpc.sig.ComputeR(R2)
+	return &GeneratePartialSignatureSResponse{
+		SigID: request.SigID,
+		KeyID: request.KeyID,
+		S: S.Bytes(),
+	}, nil
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -15,49 +14,49 @@ import (
 
 var msg = []byte("Hello, world!")
 
-func UnsafeMPCSign(msg []byte, p1, p2 *mpc.MPC, kid1, kid2 string) {
-	p1.InitSignature()
-	k1 := p1.GetSignature().GetMyk()
-	R1 := p1.GetSignature().GetMyR()
+// func UnsafeMPCSign(msg []byte, p1, p2 *mpc.MPC, kid1, kid2 string) {
+// 	p1.InitSignature()
+// 	k1 := p1.GetSignature().GetMyk()
+// 	R1 := p1.GetSignature().GetMyR()
 
-	p2.InitSignature()
-	k2 := p2.GetSignature().GetMyk()
-	R2 := p2.GetSignature().GetMyR()
+// 	p2.InitSignature()
+// 	k2 := p2.GetSignature().GetMyk()
+// 	R2 := p2.GetSignature().GetMyR()
 
-	p1.ComputeR(R2)
-	// R := p1.GetSignature().GetR()
+// 	p1.ComputeR(R2)
+// 	// R := p1.GetSignature().GetR()
 
-	p2.ComputeR(R1)
-	// R = p2.GetSignature().GetR()
+// 	p2.ComputeR(R1)
+// 	// R = p2.GetSignature().GetR()
 
-	r := p1.GetSignature().Getr()
-	// r := R2.X.Mod(&R.X, elliptic.P256().Params().N)
+// 	r := p1.GetSignature().Getr()
+// 	// r := R2.X.Mod(&R.X, elliptic.P256().Params().N)
 
-	rd := big.NewInt(1).Mul(r, p1.PrivateKey(kid1).D)
+// 	rd := big.NewInt(1).Mul(r, p1.PrivateKey(kid1).D)
 
-	e := sha256.Sum256(msg)
-	ebn := new(big.Int).SetBytes(e[:])
+// 	e := sha256.Sum256(msg)
+// 	ebn := new(big.Int).SetBytes(e[:])
 
-	k2Inverse := k2.ModInverse(k2, elliptic.P256().Params().N)
-	k1Inverse := k1.ModInverse(k1, elliptic.P256().Params().N)
-	// kInverse := new(big.Int).Mul(k1Inverse, k2Inverse)
+// 	k2Inverse := k2.ModInverse(k2, elliptic.P256().Params().N)
+// 	k1Inverse := k1.ModInverse(k1, elliptic.P256().Params().N)
+// 	// kInverse := new(big.Int).Mul(k1Inverse, k2Inverse)
 
-	erd := big.NewInt(1).Add(ebn, rd)
-	k2erd := big.NewInt(1).Mul(k2Inverse, erd)
-	s := big.NewInt(1).Mul(k1Inverse, k2erd)
-	s = s.Mod(s, elliptic.P256().Params().N)
+// 	erd := big.NewInt(1).Add(ebn, rd)
+// 	k2erd := big.NewInt(1).Mul(k2Inverse, erd)
+// 	s := big.NewInt(1).Mul(k1Inverse, k2erd)
+// 	s = s.Mod(s, elliptic.P256().Params().N)
 
-	fmt.Printf("s: %x\n", s)
-	fmt.Printf("r: %x\n", r)
+// 	fmt.Printf("s: %x\n", s)
+// 	fmt.Printf("r: %x\n", r)
 
-	var eb []byte
-	for _, b := range e {
-		eb = append(eb, b)
-	}
+// 	var eb []byte
+// 	for _, b := range e {
+// 		eb = append(eb, b)
+// 	}
 
-	v := ecdsa.Verify(p1.PublicKey(kid1), eb, r, s)
-	fmt.Printf("v: %v\n", v)
-}
+// 	v := ecdsa.Verify(p1.PublicKey(kid1), eb, r, s)
+// 	fmt.Printf("v: %v\n", v)
+// }
 
 func main() {
 	logger := logger.NewLogger(logger.LoggerConfig{
@@ -72,6 +71,9 @@ func main() {
 	p1.AddPeer(p2)
 	p2.AddPeer(p1)
 
+	p1.InitSignator()
+	p2.InitSignator()
+
 	// 2a. generate keypair for P1 (d1, Q1)
 	kid1 := uuid.New().String()
 	err := p1.GenerateKeyPair(kid1)
@@ -82,115 +84,18 @@ func main() {
 	logger.Info().Str("Partial Private Key", hex.EncodeToString(p1.PartialPrivateKeyBytes(kid1))).Msg("Party1 Partial Private Key")
 	logger.Info().Str("Partial Private Key", hex.EncodeToString(p1.PartialPublicKeyBytes(kid1))).Msg("Party1 Partial Public Key")
 	logger.Info().Str("Partial Private Key", hex.EncodeToString(p1.PublicKeyBytes(kid1))).Msg("Party1 Public Key")
-
-	// // 2b. generate keypair for P2 (d2, Q2)
-	// kid2 := uuid.New().String()
-	// err = p2.GenerateKeyPair(kid2)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// logger.Info().Msg("2b. Generate Party2 Keypair")
 	logger.Info().Str("Partial Private Key", hex.EncodeToString(p2.PartialPrivateKeyBytes(kid1))).Msg("Party2 Partial Private Key")
 	logger.Info().Str("Partial Private Key", hex.EncodeToString(p2.PartialPublicKeyBytes(kid1))).Msg("Party2 partial Public Key")
 	logger.Info().Str("Partial Private Key", hex.EncodeToString(p1.PublicKeyBytes(kid1))).Msg("Party2 Public Key")
 
-	// // 3. Calculate the keypair (d, Q) = (d1+d2, Q1+Q2)
-	// fmt.Println("\n3. Calculate the keypair (d, Q) = (d1+d2, Q1+Q2)")
-	// p1.ComputePublicKey(kid1, p2.PartialPublicKey(kid2))
-	// fmt.Printf("Public Key Computed by Party1: %x\n", p1.PublicKey(kid1))
-	// p2.ComputePublicKey(kid2, p1.PartialPublicKey(kid1))
-	// fmt.Printf("Public Key Computed by Party2: %x\n", p2.PublicKey(kid2))
-
-	// p1.ComputePrivateKey(kid1, p2.PartialPrivateKey(kid2))
-	// fmt.Printf("Private Key Computed by Party1: %x\n", p1.PrivateKey(kid1).D)
-	// p2.ComputePrivateKey(kid2, p1.PartialPrivateKey(kid1))
-	// fmt.Printf("Private Key Computed by Party2: %x\n", p2.PrivateKey(kid2).D)
-
-	// // 4. Verify that Q = d*G
-	// if !p1.VerifyPublicKey(kid1) {
-	// 	panic("Party1: Invalid PublicKey")
-	// }
-	// if !p2.VerifyPublicKey(kid2) {
-	// 	panic("party2: Invalid PublicKey")
-	// }
-	// fmt.Println("\n4. Verify Shared Public Key Point is on the P256 Curve (Q = d*G): OK")
-
-	// // // 5. Sign a message with d and Verify the signature with Q
-	// // sig_r, sig_s, err := ecdsa.Sign(rand.Reader, d, msg)
-	// // if err != nil {
-	// // 	panic(err)
-	// // }
-	// // v := ecdsa.Verify(&Q, msg, sig_r, sig_s)
-	// // fmt.Printf("\n5. Sign a message with d and Verify the signature with Q: %v\n", v)
-
-	// // 6a. Generate random k and compute r by Party1
-	// fmt.Println("\n6a. Generate random k1 and compute r1 by Party1")
-	// p1.InitSignature()
-	// // fmt.Printf("Random k1 generated by Party1: %x\n", p1.GetSignature().GetMyK())
-	// fmt.Printf("Computed r1 by Party1: %x\n", p1.GetSignature().GetMyR())
-
-	// // 6b. Generate random k and compute r by Party2
-	// fmt.Println("6b. Generate random k2 and compute r2 by Party2")
-	// p2.InitSignature()
-	// // fmt.Printf("Random k2 generated by Party2: %x\n", p2.GetSignature().GetMyK())
-	// fmt.Printf("Computed r2 by Party2: %x\n", p2.GetSignature().GetMyR())
-
-	// // 7a. Compute R,r by party1; R = k1*R2 and r1 = R1.x
-	// fmt.Println("\n7. Compute R,r by party1; R = k1*R2 and r1 = R1.x")
-	// p1.ComputeR(p2.GetSignature().GetMyR())
-	// fmt.Printf("Computed R by Party1: %x\n", p1.GetSignature().GetR())
-
-	// // 7b. Compute R,r by party2; R = k2*R1 and r2 = R2.x
-	// fmt.Println("7b. Compute R,r by party2; R = k2*R1 and r2 = R2.x")
-	// p2.ComputeR(p1.GetSignature().GetMyR())
-	// fmt.Printf("Computed R by Party2: %x\n", p2.GetSignature().GetR())
-
-	// // 8a. Encrypt d1 with pk1
-	// d1_encrypted, err := p1.EncryptPrivKey(kid1)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Printf("\n8. Encrypt Party1 Private Key Enc(d1): %v\n", d1_encrypted)
-
-	// // 8b. Calculate Enc(d2)
-	// d2_encrypted, err := p2.EncryptPrivKey(kid2)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Printf("\n8b. Encrypt Party2 Private Key Enc(d2): %v\n", d2_encrypted)
-
-	// // 9. Calculate hash of the message
-	// h := sha256.Sum256(msg)
-	// fmt.Printf("\n9. Calculate SHA256 Hash of the message: %x\n", h)
-
-	// // 10. Compute Encrypted Signature s1 by Party1
-	// encrypted_s1, err := p1.ComputeSigpartialS(kid1, d2_encrypted, p2.PartyPaillerPublicKey(), h[:])
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Printf("\n10. Compute Encrypted Signature s1 by Party1: %v\n", encrypted_s1)
-
-	// // 11. Decrypt Encrypted partial signature s2
-	// fmt.Println("\n11. Compute Signature R, S by Party2")
-	// sig_r, sig_s, err := p2.ComputeSignature(encrypted_s1)
-	// fmt.Printf("Computed Signature R: %x\n", sig_r)
-	// fmt.Printf("Computed Signature S: %x\n", sig_s)
-
-	// // 12. Verify the signature
-	// verified := ecdsa.Verify(p1.PublicKey(kid1), h[:], sig_r, sig_s)
-	// fmt.Printf("\n12. Verify the signature: %v\n", verified)
-
-	// UnsafeMPCSign(h[:], p1, p2, kid1, kid2)
-
+	h := sha256.Sum256(msg)
+	sig_r, sig_s, err := p1.Sign(h[:], kid1)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("r: %x\n", sig_r)
+	fmt.Printf("s: %x\n", sig_s)
+	verified := ecdsa.Verify(p1.PublicKey(kid1), h[:], new(big.Int).SetBytes(sig_r), new(big.Int).SetBytes(sig_s))
+	fmt.Printf("verified: %v\n", verified)
 }
 
-// func readBigIntFromFile(filename string) (*big.Int, error) {
-// 	// Read the byte slice from the file
-// 	data, err := ioutil.ReadFile(filename)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// Convert the byte slice back to a big integer
-// 	loadedBigInt := new(big.Int).SetBytes(data)
-// 	return loadedBigInt, nil
-// }

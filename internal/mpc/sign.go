@@ -4,107 +4,186 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 
 	"github.com/coinbase/kryptology/pkg/paillier"
+	"github.com/google/uuid"
+	homomorphic "github.com/hnamzian/yehuda-mpc/internal/paillier"
 	"github.com/hnamzian/yehuda-mpc/internal/random"
 )
 
-type R struct {
-	X big.Int
-	Y big.Int
+type SignatureR ecdsa.PublicKey
+
+func (R *SignatureR) Marshal() []byte {
+	return elliptic.Marshal(elliptic.P256(), R.X, R.Y)
+}
+func UnmarshalR(data []byte) *SignatureR {
+	x, y := elliptic.Unmarshal(elliptic.P256(), data)
+	return &SignatureR{Curve: elliptic.P256(), X: x, Y: y}
 }
 
 type Signature struct {
-	_R   *R
-	_r   *big.Int
-	my_k *big.Int
-	my_R *R
-	my_r *big.Int
+	keyID string
+	_R    *SignatureR
+	_r    *big.Int
+	my_k  *big.Int
+	my_R  *SignatureR
+	my_r  *big.Int
+}
+type Signatures map[string]*Signature
+
+type Signator struct {
+	peer       Peer
+	wallets    *Wallets
+	signatures Signatures
+	paillierPk *homomorphic.PaillierKey
 }
 
-func InitSignature() *Signature {
-	my_k, my_r, my_R := generate_kr()
-	return &Signature{
-		my_k: my_k,
-		my_r: my_r,
-		my_R: my_R,
+func NewSignator(peer Peer, paillierPK *homomorphic.PaillierKey, wallets *Wallets) Signator {
+	return Signator{
+		peer:       peer,
+		signatures: make(Signatures),
+		wallets:    wallets,
+		paillierPk: paillierPK,
 	}
 }
 
-func generate_kr() (*big.Int, *big.Int, *R) {
-	// Generate a random number k1 for Party1
-	k, err := random.GetRandomNumber(elliptic.P256(), rand.Reader)
+func (s *Signator) Sign(digest []byte, keyID string) ([]byte, []byte, error) {
+	sigID := uuid.New().String()
+	if err := s.GenerateR(sigID, keyID); err != nil {
+		return nil, nil, err
+	}
+
+	// compute partial S by Peer
+	d := s.wallets.GetWallet(keyID).partialKey.D
+	var d_encbigint *big.Int
+	d_encbigint, _, err := s.paillierPk.Pk.Encrypt(d)
 	if err != nil {
-		panic(err)
+		return nil, nil, err
+	}
+	pk_bytes, err := s.paillierPk.Pk.MarshalJSON()
+	if err != nil {
+		return nil, nil, err
+	}
+	resp, err := s.peer.GeneratePartialSignatureS(&GeneratePartialSignatureSRequest{
+		SigID:  sigID,
+		KeyID:  keyID,
+		D:      d_encbigint.Bytes(),
+		PK:     pk_bytes,
+		Digest: digest,
+	})
+
+	// compute signature S
+	partial_s := new(big.Int).SetBytes(resp.S)
+	sig_R, sig_S, err := s.computeSignature(sigID, keyID, partial_s)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// 7. Calculate R = k*G and r = R.x
-	Rx, Ry := elliptic.P256().ScalarBaseMult(k.Bytes())
-	Rp := ecdsa.PublicKey{Curve: elliptic.P256(), X: Rx, Y: Ry}
-	r := Rp.X.Mod(Rp.X, elliptic.P256().Params().N)
-
-	return k, r, &R{X: *Rp.X, Y: *Rp.Y}
+	return sig_R.Bytes(), sig_S.Bytes(), err
 }
 
-func (s *Signature) GetMyk() *big.Int {
-	return s.my_k
-}
-func (s *Signature) GetMyr() *big.Int {
-	return s.my_r
-}
-func (s *Signature) GetMyR() *R {
-	return s.my_R
-}
-func (s *Signature) GetR() *R {
-	return s._R
-}
-func (s *Signature) Getr() *big.Int {
-	return s._r
-}
-func (s *Signature) ComputeR(R2 *R) {
-	Rx, Ry := elliptic.P256().ScalarMult(&R2.X, &R2.Y, s.my_k.Bytes())
-	s._R = &R{X: *Rx, Y: *Ry}
-	s._r = s._R.X.Mod(&s._R.X, elliptic.P256().Params().N)
+func (s *Signator) GenerateR(sigID, keyID string) error {
+	// generate random k1 and
+	// generate partial R; R1 = k1*G
+	if err := s.generatePartialR(sigID, keyID); err != nil {
+		return err
+	}
+
+	// send R1 to Party2 to generate R = k2*R1
+	resp, err := s.peer.GenerateSigantureR(&GenerateSigRRequest{
+		SigID: sigID,
+		KeyID: keyID,
+		R:     s.signatures[sigID].my_R.Marshal(),
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("r: %x\n", resp.R)
+	s.signatures[sigID]._r = new(big.Int).SetBytes(resp.R)
+
+	return nil
 }
 
-func (s *Signature) computeSigPartialS(d1 *ecdsa.PrivateKey, d2_encrypted paillier.Ciphertext, pk2 *paillier.PublicKey, digest []byte) (paillier.Ciphertext, error) {
-	// compute my encrypted private key by Party2 Paillier Public Key
-	d1_encrypted, _, err := pk2.Encrypt(d1.D)
+func (s *Signator) generatePartialR(sigID, keyID string) error {
+	my_k, err := random.GetRandomNumber(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return err
+	}
+	Rx, Ry := elliptic.P256().ScalarBaseMult(my_k.Bytes())
+
+	my_R := &SignatureR{Curve: elliptic.P256(), X: Rx, Y: Ry}
+
+	sig := &Signature{
+		keyID: keyID,
+		my_k:  my_k,
+		my_R:  my_R,
+	}
+
+	s.signatures[sigID] = sig
+
+	return nil
+}
+
+func (s *Signator) generateSigantureR(sigID, keyID string, R1 *SignatureR) (*big.Int, error) {
+	my_k, err := random.GetRandomNumber(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
 	}
 
+	Rx, Ry := elliptic.P256().ScalarMult(R1.X, R1.Y, my_k.Bytes())
+	R := &SignatureR{Curve: elliptic.P256(), X: Rx, Y: Ry}
+	r := R.X.Mod(R.X, elliptic.P256().Params().N)
+
+	s.signatures[sigID] = &Signature{
+		keyID: keyID,
+		my_k:  my_k,
+		_R:    R,
+		_r:    r,
+	}
+	return s.signatures[sigID]._r, nil
+}
+
+func (s *Signator) generateSignaturePartialS(sigID, keyID string, peer_d_encbytes []byte, pk *paillier.PublicKey, digest []byte) (paillier.Ciphertext, error) {
+	// compute my encrypted private key by Party2 Paillier Public Key
+	// convert []byte to *big.Int
+	peer_d_encrypted := new(big.Int).SetBytes(peer_d_encbytes)
+
 	// Calculate Encrypted Private Key Enc(d) = Enc(d1) + Enc(d2)
-	d_encrypted, err := pk2.Add(d1_encrypted, d2_encrypted)
+	my_d_encrypted, _, err := pk.Encrypt(s.wallets.GetWallet(keyID).partialKey.D)
+	if err != nil {
+		return nil, err
+	}
+	d_encrypted, err := pk.Add(peer_d_encrypted, my_d_encrypted)
 	if err != nil {
 		return nil, err
 	}
 
 	// Calculate Enc(r.d) = Enc(r) * Enc(d)
-	rd_encrypted, err := pk2.Mul(s._r, d_encrypted)
+	rd_encrypted, err := pk.Mul(s.signatures[sigID]._r, d_encrypted)
 	if err != nil {
 		return nil, err
 	}
 
 	// Encrypt hash of the message Enc(h) with pk1
 	digest_bign := new(big.Int).SetBytes(digest[:])
-	digest_encrypted, _, err := pk2.Encrypt(digest_bign)
+	digest_encrypted, _, err := pk.Encrypt(digest_bign)
 	if err != nil {
 		return nil, err
 	}
 
 	// Calculate Enc(h+r.d) = Enc(h) * Enc(r.d)
-	hrd_encrypted, err := pk2.Add(digest_encrypted, rd_encrypted)
+	hrd_encrypted, err := pk.Add(digest_encrypted, rd_encrypted)
 	if err != nil {
 		return nil, err
 	}
 
 	// Calculate k2^-1
-	k1_inv := s.my_k.ModInverse(s.my_k, elliptic.P256().Params().N)
+	k1_inv := s.signatures[sigID].my_k.ModInverse(s.signatures[sigID].my_k, elliptic.P256().Params().N)
 
 	// 21. Calculate Enc(k2^-1 * (h+r.d)) = Enc(k2^-1) * Enc(h+r.d)
-	s1_encrypted, err := pk2.Mul(k1_inv, hrd_encrypted)
+	s1_encrypted, err := pk.Mul(k1_inv, hrd_encrypted)
 	if err != nil {
 		return nil, err
 	}
@@ -112,21 +191,19 @@ func (s *Signature) computeSigPartialS(d1 *ecdsa.PrivateKey, d2_encrypted pailli
 	return s1_encrypted, nil
 }
 
-func (s *Signature) computeSignature(sk *paillier.SecretKey, s2_encrypted paillier.Ciphertext) (*big.Int, *big.Int, error) {
+func (s *Signator) computeSignature(sigID, keyID string, s2_encrypted paillier.Ciphertext) (*big.Int, *big.Int, error) {
 	// 22. Decrypt Encrypted partial signature s2
-	s2, err := sk.Decrypt(s2_encrypted)
+	s2, err := s.paillierPk.Sk.Decrypt(s2_encrypted)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Calculate k1^-1
-	k1_inv := s.my_k.ModInverse(s.my_k, elliptic.P256().Params().N)
+	k1_inv := s.signatures[sigID].my_k.ModInverse(s.signatures[sigID].my_k, elliptic.P256().Params().N)
 
 	// Calculate s = k1^-1 * s2
 	sig_s := new(big.Int).Mul(k1_inv, s2)
 	sig_s = sig_s.Mod(sig_s, elliptic.P256().Params().N)
 
-	return s._r, sig_s, nil
+	return s.signatures[sigID]._r, sig_s, nil
 }
-
-

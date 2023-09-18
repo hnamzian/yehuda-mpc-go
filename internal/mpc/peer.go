@@ -7,6 +7,8 @@ type Peer interface {
 	ProvePartialKeyCommitment(*ProvePartialKeyCommitmentRequest) (*ProvePartialKeyCommitmentResponse, error)
 	ExchangeKey(*ExchangeKeyRequest) (*ExchangeKeyResponse, error)
 	ProveKeyCommitment(*ProveKeyCommitmentRequest) (*ProveKeyCommitmentResponse, error)
+	GenerateSigantureR(*GenerateSigRRequest) (*GenerateSigRResponse, error)
+	GeneratePartialSignatureS(*GeneratePartialSignatureSRequest) (*GeneratePartialSignatureSResponse, error)
 }
 
 type (
@@ -49,5 +51,30 @@ type (
 		KeyID    string
 		Verified bool
 	}
-)
 
+	GenerateSigRRequest struct {
+		SigID string
+		KeyID string
+		R     []byte
+	}
+
+	GenerateSigRResponse struct {
+		SigID string
+		KeyID string
+		R     []byte
+	}
+
+	GeneratePartialSignatureSRequest struct {
+		SigID  string
+		KeyID  string
+		D      []byte
+		PK     []byte
+		Digest []byte
+	}
+
+	GeneratePartialSignatureSResponse struct {
+		SigID string
+		KeyID string
+		S     []byte
+	}
+)
