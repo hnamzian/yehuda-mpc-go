@@ -268,6 +268,18 @@ func (mpc *MPC) Sign(digest []byte, keyID string) ([]byte, []byte, error) {
 	return mpc.signator.Sign(digest, keyID)
 }
 
+func (mpc *MPC) SignASN1(digest []byte, keyID string) ([]byte, error) {
+	return mpc.signator.SignASN1(digest, keyID)
+}
+
+func (mpc *MPC) Verify(digest []byte, sig_R, sig_S []byte, keyID string) bool {
+	return mpc.signator.Verify(digest, sig_R, sig_S, keyID)
+}
+
+func (mpc *MPC) VerifyASN1(digest []byte, sig []byte, keyID string) bool {
+	return mpc.signator.VerifyASN1(digest, sig, keyID)
+}
+
 func (mpc *MPC) GenerateSigantureR(request *GenerateSigRRequest) (*GenerateSigRResponse, error) {
 	r, err := mpc.signator.generateSigantureR(request.SigID, request.KeyID, UnmarshalR(request.R))
 	if err != nil {
@@ -284,7 +296,7 @@ func (mpc *MPC) GeneratePartialSignatureS(request *GeneratePartialSignatureSRequ
 	pk := &paillier.PublicKey{}
 	pk.UnmarshalJSON(request.PK)
 
-	var S *big.Int 
+	var S *big.Int
 	S, err := mpc.signator.generateSignaturePartialS(
 		request.SigID,
 		request.KeyID,
@@ -299,6 +311,6 @@ func (mpc *MPC) GeneratePartialSignatureS(request *GeneratePartialSignatureSRequ
 	return &GeneratePartialSignatureSResponse{
 		SigID: request.SigID,
 		KeyID: request.KeyID,
-		S: S.Bytes(),
+		S:     S.Bytes(),
 	}, nil
 }

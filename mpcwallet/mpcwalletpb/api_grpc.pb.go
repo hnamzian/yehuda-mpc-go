@@ -27,6 +27,12 @@ const (
 	MPCService_ProvePartialKeyCommitment_FullMethodName = "/mpcservice.MPCService/ProvePartialKeyCommitment"
 	MPCService_ExchangeKey_FullMethodName               = "/mpcservice.MPCService/ExchangeKey"
 	MPCService_ProveKeyCommitment_FullMethodName        = "/mpcservice.MPCService/ProveKeyCommitment"
+	MPCService_Sign_FullMethodName                      = "/mpcservice.MPCService/Sign"
+	MPCService_SignASN1_FullMethodName                  = "/mpcservice.MPCService/SignASN1"
+	MPCService_Verify_FullMethodName                    = "/mpcservice.MPCService/Verify"
+	MPCService_VerifyASN1_FullMethodName                = "/mpcservice.MPCService/VerifyASN1"
+	MPCService_GenerateSignatureR_FullMethodName        = "/mpcservice.MPCService/GenerateSignatureR"
+	MPCService_GeneratePartialSignatureS_FullMethodName = "/mpcservice.MPCService/GeneratePartialSignatureS"
 )
 
 // MPCServiceClient is the client API for MPCService service.
@@ -41,6 +47,12 @@ type MPCServiceClient interface {
 	ProvePartialKeyCommitment(ctx context.Context, in *ProvePartialKeyCommitmentRequest, opts ...grpc.CallOption) (*ProvePartialKeyCommitmentResponse, error)
 	ExchangeKey(ctx context.Context, in *ExchangeKeyRequest, opts ...grpc.CallOption) (*ExchangeKeyResponse, error)
 	ProveKeyCommitment(ctx context.Context, in *ProveKeyCommitmentRequest, opts ...grpc.CallOption) (*ProveKeyCommitmentResponse, error)
+	Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error)
+	SignASN1(ctx context.Context, in *SignASN1Request, opts ...grpc.CallOption) (*SignASN1Response, error)
+	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
+	VerifyASN1(ctx context.Context, in *VerifyASN1Request, opts ...grpc.CallOption) (*VerifyASN1Response, error)
+	GenerateSignatureR(ctx context.Context, in *GenerateSignatureRRequest, opts ...grpc.CallOption) (*GenerateSignatureRResponse, error)
+	GeneratePartialSignatureS(ctx context.Context, in *GeneratePartialSignatureSRequest, opts ...grpc.CallOption) (*GeneratePartialSignatureSResponse, error)
 }
 
 type mPCServiceClient struct {
@@ -123,6 +135,60 @@ func (c *mPCServiceClient) ProveKeyCommitment(ctx context.Context, in *ProveKeyC
 	return out, nil
 }
 
+func (c *mPCServiceClient) Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error) {
+	out := new(SignResponse)
+	err := c.cc.Invoke(ctx, MPCService_Sign_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mPCServiceClient) SignASN1(ctx context.Context, in *SignASN1Request, opts ...grpc.CallOption) (*SignASN1Response, error) {
+	out := new(SignASN1Response)
+	err := c.cc.Invoke(ctx, MPCService_SignASN1_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mPCServiceClient) Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error) {
+	out := new(VerifyResponse)
+	err := c.cc.Invoke(ctx, MPCService_Verify_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mPCServiceClient) VerifyASN1(ctx context.Context, in *VerifyASN1Request, opts ...grpc.CallOption) (*VerifyASN1Response, error) {
+	out := new(VerifyASN1Response)
+	err := c.cc.Invoke(ctx, MPCService_VerifyASN1_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mPCServiceClient) GenerateSignatureR(ctx context.Context, in *GenerateSignatureRRequest, opts ...grpc.CallOption) (*GenerateSignatureRResponse, error) {
+	out := new(GenerateSignatureRResponse)
+	err := c.cc.Invoke(ctx, MPCService_GenerateSignatureR_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mPCServiceClient) GeneratePartialSignatureS(ctx context.Context, in *GeneratePartialSignatureSRequest, opts ...grpc.CallOption) (*GeneratePartialSignatureSResponse, error) {
+	out := new(GeneratePartialSignatureSResponse)
+	err := c.cc.Invoke(ctx, MPCService_GeneratePartialSignatureS_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MPCServiceServer is the server API for MPCService service.
 // All implementations must embed UnimplementedMPCServiceServer
 // for forward compatibility
@@ -135,6 +201,12 @@ type MPCServiceServer interface {
 	ProvePartialKeyCommitment(context.Context, *ProvePartialKeyCommitmentRequest) (*ProvePartialKeyCommitmentResponse, error)
 	ExchangeKey(context.Context, *ExchangeKeyRequest) (*ExchangeKeyResponse, error)
 	ProveKeyCommitment(context.Context, *ProveKeyCommitmentRequest) (*ProveKeyCommitmentResponse, error)
+	Sign(context.Context, *SignRequest) (*SignResponse, error)
+	SignASN1(context.Context, *SignASN1Request) (*SignASN1Response, error)
+	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	VerifyASN1(context.Context, *VerifyASN1Request) (*VerifyASN1Response, error)
+	GenerateSignatureR(context.Context, *GenerateSignatureRRequest) (*GenerateSignatureRResponse, error)
+	GeneratePartialSignatureS(context.Context, *GeneratePartialSignatureSRequest) (*GeneratePartialSignatureSResponse, error)
 	mustEmbedUnimplementedMPCServiceServer()
 }
 
@@ -165,6 +237,24 @@ func (UnimplementedMPCServiceServer) ExchangeKey(context.Context, *ExchangeKeyRe
 }
 func (UnimplementedMPCServiceServer) ProveKeyCommitment(context.Context, *ProveKeyCommitmentRequest) (*ProveKeyCommitmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProveKeyCommitment not implemented")
+}
+func (UnimplementedMPCServiceServer) Sign(context.Context, *SignRequest) (*SignResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Sign not implemented")
+}
+func (UnimplementedMPCServiceServer) SignASN1(context.Context, *SignASN1Request) (*SignASN1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignASN1 not implemented")
+}
+func (UnimplementedMPCServiceServer) Verify(context.Context, *VerifyRequest) (*VerifyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
+}
+func (UnimplementedMPCServiceServer) VerifyASN1(context.Context, *VerifyASN1Request) (*VerifyASN1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyASN1 not implemented")
+}
+func (UnimplementedMPCServiceServer) GenerateSignatureR(context.Context, *GenerateSignatureRRequest) (*GenerateSignatureRResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateSignatureR not implemented")
+}
+func (UnimplementedMPCServiceServer) GeneratePartialSignatureS(context.Context, *GeneratePartialSignatureSRequest) (*GeneratePartialSignatureSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GeneratePartialSignatureS not implemented")
 }
 func (UnimplementedMPCServiceServer) mustEmbedUnimplementedMPCServiceServer() {}
 
@@ -323,6 +413,114 @@ func _MPCService_ProveKeyCommitment_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MPCService_Sign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).Sign(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_Sign_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).Sign(ctx, req.(*SignRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MPCService_SignASN1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignASN1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).SignASN1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_SignASN1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).SignASN1(ctx, req.(*SignASN1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MPCService_Verify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).Verify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_Verify_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).Verify(ctx, req.(*VerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MPCService_VerifyASN1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyASN1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).VerifyASN1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_VerifyASN1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).VerifyASN1(ctx, req.(*VerifyASN1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MPCService_GenerateSignatureR_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateSignatureRRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).GenerateSignatureR(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_GenerateSignatureR_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).GenerateSignatureR(ctx, req.(*GenerateSignatureRRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MPCService_GeneratePartialSignatureS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GeneratePartialSignatureSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MPCServiceServer).GeneratePartialSignatureS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MPCService_GeneratePartialSignatureS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MPCServiceServer).GeneratePartialSignatureS(ctx, req.(*GeneratePartialSignatureSRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MPCService_ServiceDesc is the grpc.ServiceDesc for MPCService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -361,6 +559,30 @@ var MPCService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProveKeyCommitment",
 			Handler:    _MPCService_ProveKeyCommitment_Handler,
+		},
+		{
+			MethodName: "Sign",
+			Handler:    _MPCService_Sign_Handler,
+		},
+		{
+			MethodName: "SignASN1",
+			Handler:    _MPCService_SignASN1_Handler,
+		},
+		{
+			MethodName: "Verify",
+			Handler:    _MPCService_Verify_Handler,
+		},
+		{
+			MethodName: "VerifyASN1",
+			Handler:    _MPCService_VerifyASN1_Handler,
+		},
+		{
+			MethodName: "GenerateSignatureR",
+			Handler:    _MPCService_GenerateSignatureR_Handler,
+		},
+		{
+			MethodName: "GeneratePartialSignatureS",
+			Handler:    _MPCService_GeneratePartialSignatureS_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

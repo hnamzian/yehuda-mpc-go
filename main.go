@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/sha256"
+	"encoding/asn1"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -58,6 +59,10 @@ var msg = []byte("Hello, world!")
 // 	fmt.Printf("v: %v\n", v)
 // }
 
+type ECDSASignautre struct {
+	R, S *big.Int
+}
+
 func main() {
 	logger := logger.NewLogger(logger.LoggerConfig{
 		Level: "debug",
@@ -97,5 +102,18 @@ func main() {
 	fmt.Printf("s: %x\n", sig_s)
 	verified := ecdsa.Verify(p1.PublicKey(kid1), h[:], new(big.Int).SetBytes(sig_r), new(big.Int).SetBytes(sig_s))
 	fmt.Printf("verified: %v\n", verified)
-}
 
+	sig := ECDSASignautre{
+		R: new(big.Int).SetBytes(sig_r),
+		S: new(big.Int).SetBytes(sig_s),
+	}
+	signature, err := asn1.Marshal(sig)
+	fmt.Printf("signature: %x\n", signature)
+
+	verified = ecdsa.VerifyASN1(p1.PublicKey(kid1), h[:], signature)
+	fmt.Printf("verified: %v\n", verified)
+
+	// p, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	// sig, err := p.Sign(rand.Reader, msg, nil)
+	// fmt.Printf("sig: %x\n", sig)
+}

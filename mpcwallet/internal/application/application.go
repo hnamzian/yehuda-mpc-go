@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/hex"
 
 	"github.com/google/uuid"
@@ -18,6 +19,12 @@ type App interface {
 	ProvePartialKeyCommitment(ctx context.Context, prove *ProvePartialKeyCommitmentRequest) (*ProvePartialKeyCommitmentResponse, error)
 	ExchangeKey(context.Context, *ExchangeKeyRequest) (*ExchangeKeyResponse, error)
 	ProveKeyCommitment(context.Context, *ProveKeyCommitmentRequest) (*ProveKeyCommitmentResponse, error)
+	Sign(context.Context, *SignRequest) (*SignResponse, error)
+	SignASN1(context.Context, *SignASN1Request) (*SignASN1Response, error)
+	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	VerifyASN1(context.Context, *VerifyASN1Request) (*VerifyASN1Response, error)
+	GenerateSignatureR(ctx context.Context, generate *GenerateSignatureRRequest) (*GenerateSignatureRResponse, error)
+	GeneratePartialSignatureS(ctx context.Context, generate *GeneratePartialSignatureSRequest) (*GeneratePartialSignatureSResponse, error)
 }
 
 type Application struct {
@@ -89,11 +96,84 @@ type (
 		KeyID    string
 		Verified bool
 	}
+
+	SignRequest struct {
+		KeyID   string
+		Message string
+	}
+
+	SignResponse struct {
+		SigID      string
+		KeyID      string
+		SignatureR []byte
+		SignatureS []byte
+	}
+
+	SignASN1Request struct {
+		KeyID   string
+		Message string
+	}
+
+	SignASN1Response struct {
+		SigID     string
+		KeyID     string
+		Signature []byte
+	}
+
+	VerifyRequest struct {
+		KeyID      string
+		Message    string
+		SignatureR []byte
+		SignatureS []byte
+	}
+
+	VerifyResponse struct {
+		KeyID    string
+		Verified bool
+	}
+
+	VerifyASN1Request struct {
+		KeyID     string
+		Message   string
+		Signature []byte
+	}
+
+	VerifyASN1Response struct {
+		KeyID    string
+		Verified bool
+	}
+
+	GenerateSignatureRRequest struct {
+		SigID    string
+		KeyID    string
+		PartialR []byte
+	}
+
+	GenerateSignatureRResponse struct {
+		SigID string
+		KeyID string
+		R     []byte
+	}
+
+	GeneratePartialSignatureSRequest struct {
+		SigID                string
+		KeyID                string
+		PeerEncryptedPrivKey []byte
+		PeerPaillierKey      []byte
+		Digest               []byte
+	}
+
+	GeneratePartialSignatureSResponse struct {
+		SigID string
+		KeyID string
+		S     []byte
+	}
 )
 
 func NewApplication(name string, walletPath string, peer mpc.Peer, logger zerolog.Logger) Application {
 	mpc := mpc.NewMPC(name, "./keys/p1", logger)
 	mpc.AddPeer(peer)
+	mpc.InitSignator()
 	return Application{mpc: mpc, peer: peer}
 }
 
@@ -199,5 +279,84 @@ func (a Application) ProveKeyCommitment(ctx context.Context, prove *ProveKeyComm
 	return &ProveKeyCommitmentResponse{
 		KeyID:    proof_resp.KeyID,
 		Verified: proof_resp.Verified,
+	}, nil
+}
+
+func (a Application) Sign(ctx context.Context, sign *SignRequest) (*SignResponse, error) {
+	h := sha256.Sum256([]byte(sign.Message))
+	sigR, sigS, err := a.mpc.Sign(h[:], sign.KeyID)
+	if err != nil {
+		return nil, err
+	}
+	return &SignResponse{
+		KeyID:      sign.KeyID,
+		SignatureR: sigR,
+		SignatureS: sigS,
+	}, nil
+}
+
+func (a Application) SignASN1(ctx context.Context, sign *SignASN1Request) (*SignASN1Response, error) {
+	h := sha256.Sum256([]byte(sign.Message))
+	sig, err := a.mpc.SignASN1(h[:], sign.KeyID)
+	if err != nil {
+		return nil, err
+	}
+	return &SignASN1Response{
+		KeyID:     sign.KeyID,
+		Signature: sig,
+	}, nil
+}
+
+func (a Application) Verify(ctx context.Context, verify *VerifyRequest) (*VerifyResponse, error) {
+	h := sha256.Sum256([]byte(verify.Message))
+	verified := a.mpc.Verify(h[:], verify.SignatureR, verify.SignatureS, verify.KeyID)
+	return &VerifyResponse{
+		KeyID:    verify.KeyID,
+		Verified: verified,
+	}, nil
+}
+
+func (a Application) VerifyASN1(ctx context.Context, verify *VerifyASN1Request) (*VerifyASN1Response, error) {
+	h := sha256.Sum256([]byte(verify.Message))
+	verified := a.mpc.VerifyASN1(h[:], verify.Signature, verify.KeyID)
+	return &VerifyASN1Response{
+		KeyID:    verify.KeyID,
+		Verified: verified,
+	}, nil
+}
+
+func (a Application) GenerateSignatureR(ctx context.Context, generate *GenerateSignatureRRequest) (*GenerateSignatureRResponse, error) {
+	resp, err := a.mpc.GenerateSigantureR(&mpc.GenerateSigRRequest{
+		SigID: generate.SigID,
+		KeyID: generate.KeyID,
+		R:     generate.PartialR,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GenerateSignatureRResponse{
+		SigID: resp.SigID,
+		KeyID: resp.KeyID,
+		R:     resp.R,
+	}, nil
+}
+
+func (a Application) GeneratePartialSignatureS(ctx context.Context, generate *GeneratePartialSignatureSRequest) (*GeneratePartialSignatureSResponse, error) {
+	resp, err := a.mpc.GeneratePartialSignatureS(&mpc.GeneratePartialSignatureSRequest{
+		SigID:  generate.SigID,
+		KeyID:  generate.KeyID,
+		D:      generate.PeerEncryptedPrivKey,
+		PK:     generate.PeerPaillierKey,
+		Digest: generate.Digest,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GeneratePartialSignatureSResponse{
+		SigID: resp.SigID,
+		KeyID: resp.KeyID,
+		S:     resp.S,
 	}, nil
 }

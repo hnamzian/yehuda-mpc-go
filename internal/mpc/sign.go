@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/asn1"
 	"fmt"
 	"math/big"
 
@@ -12,6 +13,10 @@ import (
 	homomorphic "github.com/hnamzian/yehuda-mpc/internal/paillier"
 	"github.com/hnamzian/yehuda-mpc/internal/random"
 )
+
+type ECDSASignautre struct {
+	R, S *big.Int
+}
 
 type SignatureR ecdsa.PublicKey
 
@@ -81,7 +86,32 @@ func (s *Signator) Sign(digest []byte, keyID string) ([]byte, []byte, error) {
 		return nil, nil, err
 	}
 
+	verified := ecdsa.Verify(s.wallets.GetWallet(keyID).publicKey, digest, sig_R, sig_S)
+	fmt.Printf("verified: %v\n", verified)
+
 	return sig_R.Bytes(), sig_S.Bytes(), err
+}
+
+func (s *Signator) SignASN1(digest []byte, keyID string) ([]byte, error) {
+	sig_r, sig_s, err := s.Sign(digest, keyID)
+	if err != nil {
+		return nil, err
+	}
+	sig := ECDSASignautre{
+		R: new(big.Int).SetBytes(sig_r),
+		S: new(big.Int).SetBytes(sig_s),
+	}
+	return asn1.Marshal(sig)
+}
+
+func (s *Signator) Verify(digest []byte, sig_R, sig_S []byte, keyID string) bool {
+	verified := ecdsa.Verify(s.wallets.GetWallet(keyID).publicKey, digest, new(big.Int).SetBytes(sig_R), new(big.Int).SetBytes(sig_S))
+	return verified
+}
+
+func (s *Signator) VerifyASN1(digest []byte, signature []byte, keyID string) bool {
+	verified := ecdsa.VerifyASN1(s.wallets.GetWallet(keyID).publicKey, digest, signature)
+	return verified
 }
 
 func (s *Signator) GenerateR(sigID, keyID string) error {
@@ -100,7 +130,6 @@ func (s *Signator) GenerateR(sigID, keyID string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("r: %x\n", resp.R)
 	s.signatures[sigID]._r = new(big.Int).SetBytes(resp.R)
 
 	return nil

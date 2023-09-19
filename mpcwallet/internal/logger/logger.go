@@ -111,3 +111,75 @@ func (a Application) ProveKeyCommitment(ctx context.Context, prove *application.
 	}()
 	return a.app.ProveKeyCommitment(ctx, prove)
 }
+
+func (a Application) Sign(ctx context.Context, sign *application.SignRequest) (resp *application.SignResponse, err error) {
+	a.logger.Info().Msgf("--> MPCService.Sign: %v", sign)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.Sign")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.Sign")
+		}
+	}()
+	return a.app.Sign(ctx, sign)
+}
+
+func (a Application) SignASN1(ctx context.Context, sign *application.SignASN1Request) (resp *application.SignASN1Response, err error) {
+	a.logger.Info().Msgf("--> MPCService.SignASN1: %v", sign)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.SignASN1")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.SignASN1")
+		}
+	}()
+	return a.app.SignASN1(ctx, sign)
+}
+
+func (a Application) Verify(ctx context.Context, verify *application.VerifyRequest) (resp *application.VerifyResponse, err error) {
+	a.logger.Info().Msgf("--> MPCService.Verify: %v", verify)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.Verify")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.Verify")
+		}
+	}()
+	return a.app.Verify(ctx, verify)
+}
+
+func (a Application) VerifyASN1(ctx context.Context, verify *application.VerifyASN1Request) (resp *application.VerifyASN1Response, err error) {
+	a.logger.Info().Msgf("--> MPCService.VerifyASN1: %v", verify)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.VerifyASN1")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.VerifyASN1")
+		}
+	}()
+	return a.app.VerifyASN1(ctx, verify)
+}
+
+func (a Application) GenerateSignatureR(ctx context.Context, generate *application.GenerateSignatureRRequest) (resp *application.GenerateSignatureRResponse, err error) {
+	a.logger.Info().Msgf("--> MPCService.GenerateSignatureR: %v", generate)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.GenerateSignatureR")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.GenerateSignatureR")
+		}
+	}()
+	return a.app.GenerateSignatureR(ctx, generate)
+}
+
+func (a Application) GeneratePartialSignatureS(ctx context.Context, generate *application.GeneratePartialSignatureSRequest) (resp *application.GeneratePartialSignatureSResponse, err error) {
+	a.logger.Info().Msgf("--> MPCService.GeneratePartialSignatureS: %v", generate)
+	defer func() {
+		if err != nil {
+			a.logger.Error().Err(err).Msg("<-- MPCService.GeneratePartialSignatureS")
+		} else {
+			a.logger.Info().Msg("<-- MPCService.GeneratePartialSignatureS")
+		}
+	}()
+	return a.app.GeneratePartialSignatureS(ctx, generate)
+}

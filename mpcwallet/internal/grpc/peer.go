@@ -119,3 +119,46 @@ func (p *Peer) ProveKeyCommitment(prove *mpc.ProveKeyCommitmentRequest) (*mpc.Pr
 		Verified: resp.Verified,
 	}, nil
 }
+
+func (p *Peer) GenerateSigantureR(generate *mpc.GenerateSigRRequest) (*mpc.GenerateSigRResponse, error) {
+	resp, err := p.client.GenerateSignatureR(p.ctx, &mpcwalletpb.GenerateSignatureRRequest{
+		SigId:     generate.SigID,
+		KeyId:     generate.KeyID,
+		Partial_R: hex.EncodeToString(generate.R),
+	})
+	if err != nil {
+		return nil, err
+	}
+	R_bytes, err := hex.DecodeString(resp.R)
+	if err != nil {
+		return nil, err
+	}
+	return &mpc.GenerateSigRResponse{
+		SigID: resp.SigId,
+		KeyID: resp.KeyId,
+		R:     R_bytes,
+	}, nil
+}
+
+func (p *Peer) GeneratePartialSignatureS(generate *mpc.GeneratePartialSignatureSRequest) (*mpc.GeneratePartialSignatureSResponse, error) {
+	resp, err := p.client.GeneratePartialSignatureS(p.ctx, &mpcwalletpb.GeneratePartialSignatureSRequest{
+		SigId:            generate.SigID,
+		KeyId:            generate.KeyID,
+		EncryptedPrivKey: hex.EncodeToString(generate.D),
+		PaillierPk:       hex.EncodeToString(generate.PK),
+		Digest:           hex.EncodeToString(generate.Digest),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	S_bytes, err := hex.DecodeString(resp.S)
+	if err != nil {
+		return nil, err
+	}
+	return &mpc.GeneratePartialSignatureSResponse{
+		SigID: resp.SigId,
+		KeyID: resp.KeyId,
+		S:     S_bytes,
+	}, nil
+}
