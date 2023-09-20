@@ -2,40 +2,56 @@ package waiter
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"golang.org/x/sync/errgroup"
 )
 
-type waiterFunc func(context.Context) error
+type WaitFunc func(context.Context) error
 
 type Waiter struct {
-	ctx   context.Context
-	group *errgroup.Group
-	Fns   []waiterFunc
+	ctx    context.Context
+	cancel context.CancelFunc
+	fns    []WaitFunc
 }
 
-func NewWaiter(ctx context.Context) *Waiter {
-	wGroup, wCtx := errgroup.WithContext(ctx)
+func NewWaiter() *Waiter {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel = signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	return &Waiter{
-		ctx:   wCtx,
-		group: wGroup,
+		ctx:    ctx,
+		cancel: cancel,
+		fns:    []WaitFunc{},
 	}
 }
 
-func (w *Waiter) Add(fn waiterFunc) {
-	w.Fns = append(w.Fns, fn)
+func (w *Waiter) Add(fn WaitFunc) {
+	w.fns = append(w.fns, fn)
 }
 
 func (w *Waiter) Context() context.Context {
 	return w.ctx
 }
 
+func (w *Waiter) CancelFunc() context.CancelFunc {
+	return w.cancel
+}
+
 func (w *Waiter) Wait() error {
-	for _, fn := range(w.Fns) {
-		f := func() error {
-			return fn(w.ctx)
-		}
-		w.group.Go(f)
+	group, gCtx := errgroup.WithContext(w.ctx)
+
+	group.Go(func() error {
+		<-w.ctx.Done()
+		w.cancel()
+		return nil
+	})
+
+	for _, fn := range w.fns {
+		fn := fn
+		group.Go(func() error { return fn(gCtx) })
 	}
-	return w.group.Wait()
+	return group.Wait()
 }

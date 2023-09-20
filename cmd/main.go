@@ -37,11 +37,8 @@ func main() {
 
 	mpcwallet.Module{}.Startup(context.Background(), app)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	w := waiter.NewWaiter(ctx)
-	w.Add(app.runGrpcServer)
-	w.Add(app.runHttpServer)
+	w := waiter.NewWaiter()
+	w.Add(app.waitForRpc)
+	w.Add(app.waitForHttp)
 	w.Wait()
 }
