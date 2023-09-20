@@ -1,5 +1,8 @@
 id: "peer0"
 logLevel: debug
+http:
+  host: "0.0.0.0"
+  port: "8081"
 grpc:
   host: "0.0.0.0"
   port: "8080"

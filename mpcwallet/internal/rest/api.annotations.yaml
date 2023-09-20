@@ -1,0 +1,21 @@
+type: google.api.Service
+config_version: 3
+http:
+  rules:
+    - selector: mpcwalletpb.MPCService.GenerateKeyPair
+      post: /api/key
+      body: "*"
+    - selector: mpcwalletpb.MPCService.GetWallet
+      get: /api/key/{key_id}
+    - selector: mpcwalletpb.MPCService.Sign
+      post: /api/key/{key_id}/sign
+      body: "*"
+    - selector: mpcwalletpb.MPCService.SignASN1
+      post: /api/key/{key_id}/sign_asn1
+      body: "*"
+    - selector: mpcwalletpb.MPCService.Verify
+      post: /api/key/{key_id}/verify
+      body: "*"
+    - selector: mpcwalletpb.MPCService.VerifyASN1
+      post: /api/key/{key_id}/verify_asn1
+      body: "*"

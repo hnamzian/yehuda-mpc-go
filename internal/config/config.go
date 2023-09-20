@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hnamzian/yehuda-mpc/internal/grpc"
+	"github.com/hnamzian/yehuda-mpc/internal/http"
 	"github.com/hnamzian/yehuda-mpc/internal/peers"
 	"github.com/hnamzian/yehuda-mpc/internal/wallet"
 	"github.com/spf13/viper"
@@ -14,6 +15,7 @@ type AppConfig struct {
 	ID       string              `mapstructure:"id"`
 	LogLevel string              `mapstructure:"logLevel"`
 	Grpc     grpc.GrpcConfig     `mapstructure:"grpc"`
+	Http     http.HttpConfig     `mapstructure:"http"`
 	Peers    []peers.Peer        `mapstructure:"peers"`
 	Wallet   wallet.WalletConfig `mapstructure:"wallet"`
 }

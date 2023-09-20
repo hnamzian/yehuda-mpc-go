@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package mpcservice;
+package mpcwalletpb;
 
 service MPCService {
     rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {}

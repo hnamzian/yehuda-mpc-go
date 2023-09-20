@@ -7,6 +7,7 @@ import (
 	"github.com/hnamzian/yehuda-mpc/mpcwallet/internal/application"
 	"github.com/hnamzian/yehuda-mpc/mpcwallet/internal/grpc"
 	"github.com/hnamzian/yehuda-mpc/mpcwallet/internal/logger"
+	"github.com/hnamzian/yehuda-mpc/mpcwallet/internal/rest"
 )
 
 type Module struct{}
@@ -23,6 +24,10 @@ func (m Module) Startup(ctx context.Context, core module.Core) error {
 	app = logger.NewApplication(app, core.Logger())
 
 	grpc.RegisterWalletServer(core.RPC(), app)
+
+	if err = rest.RegisterGateway(ctx, core.Mux(), core.Config().Grpc.Address()); err != nil {
+		return err
+	}
 
 	return nil
 }

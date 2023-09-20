@@ -19,20 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MPCService_HealthCheck_FullMethodName               = "/mpcservice.MPCService/HealthCheck"
-	MPCService_GetWallet_FullMethodName                 = "/mpcservice.MPCService/GetWallet"
-	MPCService_GenerateKeyPair_FullMethodName           = "/mpcservice.MPCService/GenerateKeyPair"
-	MPCService_GeneratePartialKey_FullMethodName        = "/mpcservice.MPCService/GeneratePartialKey"
-	MPCService_ExchangePartialKey_FullMethodName        = "/mpcservice.MPCService/ExchangePartialKey"
-	MPCService_ProvePartialKeyCommitment_FullMethodName = "/mpcservice.MPCService/ProvePartialKeyCommitment"
-	MPCService_ExchangeKey_FullMethodName               = "/mpcservice.MPCService/ExchangeKey"
-	MPCService_ProveKeyCommitment_FullMethodName        = "/mpcservice.MPCService/ProveKeyCommitment"
-	MPCService_Sign_FullMethodName                      = "/mpcservice.MPCService/Sign"
-	MPCService_SignASN1_FullMethodName                  = "/mpcservice.MPCService/SignASN1"
-	MPCService_Verify_FullMethodName                    = "/mpcservice.MPCService/Verify"
-	MPCService_VerifyASN1_FullMethodName                = "/mpcservice.MPCService/VerifyASN1"
-	MPCService_GenerateSignatureR_FullMethodName        = "/mpcservice.MPCService/GenerateSignatureR"
-	MPCService_GeneratePartialSignatureS_FullMethodName = "/mpcservice.MPCService/GeneratePartialSignatureS"
+	MPCService_HealthCheck_FullMethodName               = "/mpcwalletpb.MPCService/HealthCheck"
+	MPCService_GetWallet_FullMethodName                 = "/mpcwalletpb.MPCService/GetWallet"
+	MPCService_GenerateKeyPair_FullMethodName           = "/mpcwalletpb.MPCService/GenerateKeyPair"
+	MPCService_GeneratePartialKey_FullMethodName        = "/mpcwalletpb.MPCService/GeneratePartialKey"
+	MPCService_ExchangePartialKey_FullMethodName        = "/mpcwalletpb.MPCService/ExchangePartialKey"
+	MPCService_ProvePartialKeyCommitment_FullMethodName = "/mpcwalletpb.MPCService/ProvePartialKeyCommitment"
+	MPCService_ExchangeKey_FullMethodName               = "/mpcwalletpb.MPCService/ExchangeKey"
+	MPCService_ProveKeyCommitment_FullMethodName        = "/mpcwalletpb.MPCService/ProveKeyCommitment"
+	MPCService_Sign_FullMethodName                      = "/mpcwalletpb.MPCService/Sign"
+	MPCService_SignASN1_FullMethodName                  = "/mpcwalletpb.MPCService/SignASN1"
+	MPCService_Verify_FullMethodName                    = "/mpcwalletpb.MPCService/Verify"
+	MPCService_VerifyASN1_FullMethodName                = "/mpcwalletpb.MPCService/VerifyASN1"
+	MPCService_GenerateSignatureR_FullMethodName        = "/mpcwalletpb.MPCService/GenerateSignatureR"
+	MPCService_GeneratePartialSignatureS_FullMethodName = "/mpcwalletpb.MPCService/GeneratePartialSignatureS"
 )
 
 // MPCServiceClient is the client API for MPCService service.
@@ -525,7 +525,7 @@ func _MPCService_GeneratePartialSignatureS_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var MPCService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "mpcservice.MPCService",
+	ServiceName: "mpcwalletpb.MPCService",
 	HandlerType: (*MPCServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
