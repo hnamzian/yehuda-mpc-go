@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package mpcwalletpb;
 
+import "mpcwalletpb/messages.proto";
+
 service MPCService {
     rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {}
     rpc GetWallet(GetWalletRequest) returns (GetWalletResponse) {}

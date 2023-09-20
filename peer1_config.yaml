@@ -1,6 +1,6 @@
 id: "peer1"
 logLevel: debug
-http:
+web:
   host: "0.0.0.0"
   port: "9091"
 grpc:

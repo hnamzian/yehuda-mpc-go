@@ -28,6 +28,9 @@ func (m Module) Startup(ctx context.Context, core module.Core) error {
 	if err = rest.RegisterGateway(ctx, core.Mux(), core.Config().Grpc.Address()); err != nil {
 		return err
 	}
+	if err = rest.RegisterSwagger(core.Mux()); err != nil {
+		return err
+	}
 
 	return nil
 }

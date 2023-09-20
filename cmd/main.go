@@ -1,13 +1,15 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hnamzian/yehuda-mpc/internal/config"
 	"github.com/hnamzian/yehuda-mpc/internal/logger"
+	"github.com/hnamzian/yehuda-mpc/internal/module"
 	"github.com/hnamzian/yehuda-mpc/internal/waiter"
+	"github.com/hnamzian/yehuda-mpc/internal/web"
 	"github.com/hnamzian/yehuda-mpc/mpcwallet"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -30,15 +32,22 @@ func main() {
 	app.rpc = s
 
 	app.mux = chi.NewMux()
-
+	app.mux.Mount("/", http.FileServer(http.FS(web.WebUI)))
+	
 	app.logger = logger.NewLogger(logger.LoggerConfig{
 		Level: logger.DEBUG,
 	})
+	
+	app.waiter = waiter.NewWaiter()
 
-	mpcwallet.Module{}.Startup(context.Background(), app)
+	app.modules = []module.Module{
+		mpcwallet.Module{},
+	}
+	if err = app.StartModules(); err != nil {
+		panic(err)
+	}
 
-	w := waiter.NewWaiter()
-	w.Add(app.waitForRpc)
-	w.Add(app.waitForHttp)
-	w.Wait()
+	app.waiter.Add(app.waitForRpc)
+	app.waiter.Add(app.waitForHttp)
+	app.waiter.Wait()
 }

@@ -1,0 +1,453 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "MPCService",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "MPCService"
+    }
+  ],
+  "basePath": "/",
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/key": {
+      "post": {
+        "summary": "Generate New KeyPair",
+        "operationId": "generateKeyPair",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbGenerateKeyPairResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbGenerateKeyPairRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MPCService"
+        ]
+      }
+    },
+    "/api/key/{keyId}": {
+      "get": {
+        "summary": "Get Wallet by ID",
+        "operationId": "getWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbGetWalletResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MPCService"
+        ]
+      }
+    },
+    "/api/key/{keyId}/sign": {
+      "post": {
+        "operationId": "MPCService_Sign",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbSignResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "MPCService"
+        ]
+      }
+    },
+    "/api/key/{keyId}/sign_asn1": {
+      "post": {
+        "summary": "Sign message",
+        "operationId": "signASN1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbSignASN1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "MPCService"
+        ]
+      }
+    },
+    "/api/key/{keyId}/verify": {
+      "post": {
+        "operationId": "MPCService_Verify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbVerifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "sigR": {
+                  "type": "string"
+                },
+                "sigS": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "MPCService"
+        ]
+      }
+    },
+    "/api/key/{keyId}/verify_asn1": {
+      "post": {
+        "summary": "Verify Signature",
+        "operationId": "verifyASN1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpcwalletpbVerifyASN1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "signature": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "MPCService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "mpcwalletpbExchangeKeyResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbExchangePartialKeyResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbGenerateKeyPairRequest": {
+      "type": "object"
+    },
+    "mpcwalletpbGenerateKeyPairResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbGeneratePartialKeyResponse": {
+      "type": "object"
+    },
+    "mpcwalletpbGeneratePartialSignatureSResponse": {
+      "type": "object",
+      "properties": {
+        "sigId": {
+          "type": "string"
+        },
+        "keyId": {
+          "type": "string"
+        },
+        "s": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbGenerateSignatureRResponse": {
+      "type": "object",
+      "properties": {
+        "sigId": {
+          "type": "string"
+        },
+        "keyId": {
+          "type": "string"
+        },
+        "r": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbGetWalletResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "partialPubKey": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbHealthCheckResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbProveKeyCommitmentResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "mpcwalletpbProvePartialKeyCommitmentResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "mpcwalletpbSignASN1Response": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbSignResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "sigR": {
+          "type": "string"
+        },
+        "sigS": {
+          "type": "string"
+        }
+      }
+    },
+    "mpcwalletpbVerifyASN1Response": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "mpcwalletpbVerifyResponse": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+openapiOptions:
+  file:
+    - file: "mpcwalletpb/messages.proto"
+      option:
+        info:
+          title: MPCService
+          version: "1.0.0"
+        basePath: /
+  method:
+    - method: mpcwalletpb.MPCService.GenerateKeyPair
+      option:
+        operationId: generateKeyPair
+        tags:
+          - MPCService
+        summary: Generate New KeyPair
+    - method: mpcwalletpb.MPCService.GetWallet
+      option:
+        operationId: getWallet
+        tags:
+          - MPCService
+        summary: Get Wallet by ID
+    - method: mpcwalletpb.MPCService.SignASN1
+      option:
+        operationId: signASN1
+        tags:
+          - MPCService
+        summary: Sign message
+    - method: mpcwalletpb.MPCService.VerifyASN1
+      option:
+        operationId: verifyASN1
+        tags:
+          - MPCService
+        summary: Verify Signature
