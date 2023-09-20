@@ -19,22 +19,22 @@ func GeneratePaillierKey() (*paillier.PublicKey, *paillier.SecretKey, error) {
 func CreatePaillierKeypair(path string) (*PaillierKey, error) {
 	pkjson, err := os.ReadFile(fmt.Sprintf("%s/pk.json", path))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	pk := new(paillier.PublicKey)
 	err = pk.UnmarshalJSON(pkjson)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	skjson, err := os.ReadFile(fmt.Sprintf("%s/sk.json", path))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	sk := new(paillier.SecretKey)
 	err = sk.UnmarshalJSON(skjson)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &PaillierKey{

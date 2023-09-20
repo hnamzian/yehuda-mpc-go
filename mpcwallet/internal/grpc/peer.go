@@ -31,7 +31,7 @@ func (p *Peer) WithContext(ctx context.Context) *Peer {
 func (p *Peer) Connect() error {
 	conn, err := grpc.Dial(p.addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	p.client = mpcwalletpb.NewMPCServiceClient(conn)
