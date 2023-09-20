@@ -17,7 +17,7 @@ func NewApplication(app application.App, logger zerolog.Logger) Application {
 }
 
 func (a Application) GetWallet(ctx context.Context, get *application.GetWalletRequest) (get_resp *application.GetWalletResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.GetWallet: %v", get)
+	a.logger.Info().Msgf("--> MPCService.GetWallet")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.GetWallet")
@@ -29,7 +29,7 @@ func (a Application) GetWallet(ctx context.Context, get *application.GetWalletRe
 }
 
 func (a Application) HealthCheck(ctx context.Context, health *application.HealthCheckRequest) (health_rsp *application.HealthCheckResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.HealthCheck: %v", health)
+	a.logger.Info().Msgf("--> MPCService.HealthCheck")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.HealthCheck")
@@ -41,7 +41,7 @@ func (a Application) HealthCheck(ctx context.Context, health *application.Health
 }
 
 func (a Application) GenerateKeyPair(ctx context.Context, generate *application.GenerateKeyPairRequest) (key *application.GenerateKeyPairResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.GenerateKeyPair: %v", generate)
+	a.logger.Info().Msgf("--> MPCService.GenerateKeyPair")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.GenerateKeyPair")
@@ -53,7 +53,7 @@ func (a Application) GenerateKeyPair(ctx context.Context, generate *application.
 }
 
 func (a Application) GeneratePartialKey(ctx context.Context, generate *application.GeneratePartialKeyRequest) (key *application.GeneratePartialKeyResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.GeneratePartialKey: %v", generate)
+	a.logger.Info().Msgf("--> MPCService.GeneratePartialKey")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.GeneratePartialKey")
@@ -65,7 +65,7 @@ func (a Application) GeneratePartialKey(ctx context.Context, generate *applicati
 }
 
 func (a Application) ExchangePartialKey(ctx context.Context, exchange *application.ExchangePartialKeyRequest) (exchange_resp *application.ExchangePartialKeyResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.ExchangePartialKey: %v", exchange)
+	a.logger.Info().Msgf("--> MPCService.ExchangePartialKey")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.ExchangePartialKey")
@@ -77,7 +77,7 @@ func (a Application) ExchangePartialKey(ctx context.Context, exchange *applicati
 }
 
 func (a Application) ProvePartialKeyCommitment(ctx context.Context, prove *application.ProvePartialKeyCommitmentRequest) (proof_resp *application.ProvePartialKeyCommitmentResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.ProvePartialKeyCommitment: %v", prove)
+	a.logger.Info().Msgf("--> MPCService.ProvePartialKeyCommitment")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.ProvePartialKeyCommitment")
@@ -89,7 +89,7 @@ func (a Application) ProvePartialKeyCommitment(ctx context.Context, prove *appli
 }
 
 func (a Application) ExchangeKey(ctx context.Context, exchange *application.ExchangeKeyRequest) (exchange_resp *application.ExchangeKeyResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.ExchangeKey: %v", exchange)
+	a.logger.Info().Msgf("--> MPCService.ExchangeKey")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.ExchangeKey")
@@ -101,7 +101,7 @@ func (a Application) ExchangeKey(ctx context.Context, exchange *application.Exch
 }
 
 func (a Application) ProveKeyCommitment(ctx context.Context, prove *application.ProveKeyCommitmentRequest) (proof_resp *application.ProveKeyCommitmentResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.ProveKeyCommitment: %v", prove)
+	a.logger.Info().Msgf("--> MPCService.ProveKeyCommitment")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.ProveKeyCommitment")
@@ -113,7 +113,7 @@ func (a Application) ProveKeyCommitment(ctx context.Context, prove *application.
 }
 
 func (a Application) Sign(ctx context.Context, sign *application.SignRequest) (resp *application.SignResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.Sign: %v", sign)
+	a.logger.Info().Msgf("--> MPCService.Sign")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.Sign")
@@ -125,7 +125,7 @@ func (a Application) Sign(ctx context.Context, sign *application.SignRequest) (r
 }
 
 func (a Application) SignASN1(ctx context.Context, sign *application.SignASN1Request) (resp *application.SignASN1Response, err error) {
-	a.logger.Info().Msgf("--> MPCService.SignASN1: %v", sign)
+	a.logger.Info().Msgf("--> MPCService.SignASN1")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.SignASN1")
@@ -137,7 +137,7 @@ func (a Application) SignASN1(ctx context.Context, sign *application.SignASN1Req
 }
 
 func (a Application) Verify(ctx context.Context, verify *application.VerifyRequest) (resp *application.VerifyResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.Verify: %v", verify)
+	a.logger.Info().Msgf("--> MPCService.Verify")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.Verify")
@@ -149,7 +149,7 @@ func (a Application) Verify(ctx context.Context, verify *application.VerifyReque
 }
 
 func (a Application) VerifyASN1(ctx context.Context, verify *application.VerifyASN1Request) (resp *application.VerifyASN1Response, err error) {
-	a.logger.Info().Msgf("--> MPCService.VerifyASN1: %v", verify)
+	a.logger.Info().Msgf("--> MPCService.VerifyASN1")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.VerifyASN1")
@@ -161,7 +161,7 @@ func (a Application) VerifyASN1(ctx context.Context, verify *application.VerifyA
 }
 
 func (a Application) GenerateSignatureR(ctx context.Context, generate *application.GenerateSignatureRRequest) (resp *application.GenerateSignatureRResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.GenerateSignatureR: %v", generate)
+	a.logger.Info().Msgf("--> MPCService.GenerateSignatureR")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.GenerateSignatureR")
@@ -173,7 +173,7 @@ func (a Application) GenerateSignatureR(ctx context.Context, generate *applicati
 }
 
 func (a Application) GeneratePartialSignatureS(ctx context.Context, generate *application.GeneratePartialSignatureSRequest) (resp *application.GeneratePartialSignatureSResponse, err error) {
-	a.logger.Info().Msgf("--> MPCService.GeneratePartialSignatureS: %v", generate)
+	a.logger.Info().Msgf("--> MPCService.GeneratePartialSignatureS")
 	defer func() {
 		if err != nil {
 			a.logger.Error().Err(err).Msg("<-- MPCService.GeneratePartialSignatureS")
